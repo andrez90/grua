@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Proyecto Grúa · Control remoto</title>
+  <meta name="description" content="Interfaz web para controlar la Grúa (brazo robótico) por Bluetooth de baja energía (BLE)." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏗️</text></svg>" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__logo" aria-hidden="true">🏗️</span>
+      <div>
+        <h1>Proyecto Grúa</h1>
+        <p class="app-header__subtitle">Control remoto por Bluetooth (BLE)</p>
+      </div>
+    </div>
+
+    <div class="connection-widget">
+      <span id="linkStatusDot" class="status-dot status-dot--offline" aria-hidden="true"></span>
+      <span id="connectionLabel" class="connection-widget__label">Desconectado</span>
+      <button id="connectButton" class="btn btn--primary" type="button">Conectar por Bluetooth</button>
+      <button id="disconnectButton" class="btn btn--ghost" type="button" hidden>Desconectar</button>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section id="unsupportedBanner" class="banner banner--warning" role="alert" hidden>
+      Tu navegador no soporta <strong>Web Bluetooth</strong>. Abre esta página con
+      <strong>Google Chrome</strong> o <strong>Microsoft Edge</strong> (en computador o Android),
+      y asegúrate de estar en una dirección <code>https://</code> o <code>http://localhost</code>.
+    </section>
+
+    <section id="linkLostBanner" class="banner banner--danger" role="alert" hidden>
+      ⚠️ Se perdió la señal con la grúa (sin respuesta hace más de 7 segundos). Verifica que el
+      ESP32 esté encendido y dentro de rango.
+    </section>
+
+    <section id="welcomePanel" class="panel panel--welcome">
+      <h2>Antes de empezar</h2>
+      <ol>
+        <li>Enciende el ESP32 de la grúa (debe quedar visible como <code>Grua-ESP32</code>).</li>
+        <li>Presiona <strong>«Conectar por Bluetooth»</strong> y elige el dispositivo en la lista.</li>
+        <li>Cuando el punto de estado se ponga verde, ya puedes mover los servos.</li>
+      </ol>
+    </section>
+
+    <section id="controlPanel" class="control-grid" hidden aria-label="Controles de la grúa">
+      <article class="panel panel--gamepad">
+        <div class="panel__header-row">
+          <h2>Mando de control</h2>
+        </div>
+        <p class="panel__hint">Mantén presionado un botón para mover, como en una máquina de peluches.</p>
+
+        <div class="gamepad">
+          <div class="dpad" aria-label="Mover base y hombro">
+            <button type="button" class="dpad-btn dpad-btn--up" data-direction="up" aria-label="Subir el hombro">▲</button>
+            <button type="button" class="dpad-btn dpad-btn--left" data-direction="left" aria-label="Girar la base a la izquierda">◀</button>
+            <span class="dpad-btn__center" aria-hidden="true">🕹️</span>
+            <button type="button" class="dpad-btn dpad-btn--right" data-direction="right" aria-label="Girar la base a la derecha">▶</button>
+            <button type="button" class="dpad-btn dpad-btn--down" data-direction="down" aria-label="Bajar el hombro">▼</button>
+          </div>
+
+          <div class="gamepad__side">
+            <div class="gamepad__group">
+              <span class="gamepad__group-label">Brazo (codo)</span>
+              <div class="gamepad__button-row">
+                <button type="button" class="btn btn--game" data-direction="retract">⤡ Recoger</button>
+                <button type="button" class="btn btn--game" data-direction="extend">⤢ Extender</button>
+              </div>
+            </div>
+
+            <div class="gamepad__group">
+              <span class="gamepad__group-label">Garra</span>
+              <div class="gamepad__button-row">
+                <button id="gripperOpenButton" type="button" class="btn btn--mint">✋ Abrir garra</button>
+                <button id="gripperCloseButton" type="button" class="btn btn--pink">✊ Cerrar garra</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="gamepad__keys-hint">
+          También con el teclado: <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> para mover,
+          <kbd>Q</kbd>/<kbd>E</kbd> para recoger/extender el codo, <kbd>Espacio</kbd> para abrir/cerrar
+          la garra.
+        </p>
+
+        <details class="fine-tune">
+          <summary>Ajuste fino (sliders)</summary>
+          <div id="servoSliders" class="servo-list"><!-- generado por ui.js --></div>
+        </details>
+      </article>
+
+      <article class="panel panel--recordings">
+        <div class="panel__header-row">
+          <h2>Movimientos grabados</h2>
+          <button id="clearAllRecordingsButton" type="button" class="btn btn--ghost btn--small">
+            Borrar todo
+          </button>
+        </div>
+        <p class="panel__hint">
+          Graba una secuencia de movimientos y reprodúcela luego con un clic. Cada slot guarda un
+          movimiento distinto (hasta 6).
+        </p>
+        <div id="recordingSlots" class="recording-list"><!-- generado por ui.js --></div>
+      </article>
+
+      <article class="panel panel--log">
+        <div class="panel__header-row">
+          <h2>Registro de actividad</h2>
+          <button id="clearLogButton" type="button" class="btn btn--ghost btn--small">Limpiar</button>
+        </div>
+        <ul id="activityLog" class="activity-log" aria-live="polite"></ul>
+      </article>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>
+      Firmware detectado: <span id="firmwareIdLabel">—</span> ·
+      <a href="../README.md" target="_blank" rel="noopener">Ayuda / cableado</a>
+    </p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

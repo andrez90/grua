@@ -617,14 +617,14 @@ async function autoDetectUsbConnection() {
   try {
     const ports = await navigator.serial.getPorts();
     if (ports.length > 0) {
-      setAutoConnectionHint('Arduino detectado por USB. ConectandoÔÇª');
+      setAutoConnectionHint('✅ Arduino detectado por USB. Conectando…');
       await connectWithTransport('usb');
       return;
     }
-    setAutoConnectionHint('Arduino no detectado. Conecta el cable USB o usa Bluetooth.');
+    setAutoConnectionHint('📌 Primera vez: haz clic en "USB" para autorizar el puerto del Arduino.');
   } catch (error) {
-    setAutoConnectionHint('No se pudo detectar el puerto USB.');
-    log(`Detecci├│n autom├ítica USB: ${error.message}`, 'warning');
+    setAutoConnectionHint('📌 Haz clic en "USB" para conectar el Arduino.');
+    log(`Detección automática USB: ${error.message}`, 'warning');
   }
 }
 

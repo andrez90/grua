@@ -69,6 +69,17 @@
     </section>
 
     <section id="controlPanel" class="control-grid" hidden aria-label="Controles de la grúa">
+      <article class="panel panel--mouse-control">
+        <div class="panel__header-row">
+          <h2>Control por arrastre 🖱️</h2>
+        </div>
+        <p class="panel__hint">Arrastra el ratón en el área para mover la base y el hombro. Rueda del ratón para el codo.</p>
+        <div id="mouseControlZone" class="mouse-control-zone" aria-label="Zona de control por arrastre"></div>
+        <div id="mouseControlInfo" class="mouse-control-info">
+          Base: <span id="mouseCtrBaseValue">90</span>° · Hombro: <span id="mouseCtrHombroValue">140</span>°
+        </div>
+      </article>
+
       <article class="panel panel--gamepad">
         <div class="panel__header-row">
           <h2>Mando de control</h2>

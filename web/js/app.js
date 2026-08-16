@@ -9,6 +9,7 @@
 
 import { GruaBleClient, BluetoothNotSupportedError } from './ble.js';
 import { GruaSerialClient, SerialNotSupportedError } from './serial.js';
+import { MouseControl } from './mouseControl.js';
 import {
   SERVOS,
   buildServoCommand,
@@ -35,6 +36,9 @@ const els = {
   linkStatusDot: document.getElementById('linkStatusDot'),
   autoConnectionHint: document.getElementById('autoConnectionHint'),
   connectionLabel: document.getElementById('connectionLabel'),
+  mouseControlZone: document.getElementById('mouseControlZone'),
+  mouseCtrBaseValue: document.getElementById('mouseCtrBaseValue'),
+  mouseCtrHombroValue: document.getElementById('mouseCtrHombroValue'),
   servoSliders: document.getElementById('servoSliders'),
   gripperOpenButton: document.getElementById('gripperOpenButton'),
   gripperCloseButton: document.getElementById('gripperCloseButton'),
@@ -80,6 +84,7 @@ function throttle(fn, waitMs) {
 // ----------------------------------------------------------------------------
 const ble = new GruaBleClient();
 const serial = new GruaSerialClient();
+let mouseControl = null; // Se inicializa cuando se conecta
 let activeConnection = null;
 let recSlotBits = [false, false, false, false, false, false];
 let activeRecordingSlot = null;
@@ -180,6 +185,13 @@ function updateServo(servoKey, rawValue) {
   currentAngles[servoKey] = uiValue;
   servoControls[servoKey].setValue(uiValue);
   sendServoThrottled(servoKey, uiValue);
+  
+  // Actualizar la información visual en mouseControl
+  if (servoKey === 'base' && els.mouseCtrBaseValue) {
+    els.mouseCtrBaseValue.textContent = uiValue;
+  } else if (servoKey === 'hombro' && els.mouseCtrHombroValue) {
+    els.mouseCtrHombroValue.textContent = uiValue;
+  }
 }
 
 const servoControls = createServoSliders(els.servoSliders, (servoKey, uiValue) => {
@@ -453,7 +465,7 @@ transport.addEventListener('connected', async ({ detail }) => {
   els.welcomePanel.hidden = true;
   els.controlPanel.hidden = false;
   els.linkLostBanner.hidden = true;
-  log(`Conectado a ┬½${detail.deviceName ?? 'la gr├║a'}┬╗.`, 'success');
+  log(`Conectado a ½${detail.deviceName ?? 'la grúa'}½.`, 'success');
 
   try {
     await transport.send(buildIdentityCommand.id());
@@ -462,8 +474,17 @@ transport.addEventListener('connected', async ({ detail }) => {
     log(`No se pudo pedir el estado inicial: ${error.message}`, 'warning');
   }
 
-  log('Llevando la gr├║a a la posici├│n inicialÔÇª', 'info');
+  log('Llevando la grúa a la posición inicialÔ¬¶', 'info');
   await rampAllToDefaults();
+
+  // Inicializar control por mouse
+  if (!mouseControl && els.mouseControlZone) {
+    mouseControl = new MouseControl('#mouseControlZone', SERVOS);
+    mouseControl.onServoChange((servoKey, angle) => {
+      if (!transport.isConnected) return;
+      updateServo(servoKey, angle);
+    });
+  }
 });
 
 transport.addEventListener('disconnected', () => {
@@ -473,6 +494,13 @@ transport.addEventListener('disconnected', () => {
   els.disconnectButton.hidden = true;
   els.controlPanel.hidden = true;
   els.welcomePanel.hidden = false;
+  
+  // Limpiar control por mouse
+  if (mouseControl) {
+    mouseControl.destroy();
+    mouseControl = null;
+  }
+});
   els.linkLostBanner.hidden = true;
   activeConnection = null;
   activeRecordingSlot = null;

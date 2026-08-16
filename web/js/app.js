@@ -39,6 +39,7 @@ const els = {
   mouseControlZone: document.getElementById('mouseControlZone'),
   mouseCtrBaseValue: document.getElementById('mouseCtrBaseValue'),
   mouseCtrHombroValue: document.getElementById('mouseCtrHombroValue'),
+  mouseCtrCodoValue: document.getElementById('mouseCtrCodoValue'),
   servoSliders: document.getElementById('servoSliders'),
   gripperOpenButton: document.getElementById('gripperOpenButton'),
   gripperCloseButton: document.getElementById('gripperCloseButton'),
@@ -191,6 +192,8 @@ function updateServo(servoKey, rawValue) {
     els.mouseCtrBaseValue.textContent = uiValue;
   } else if (servoKey === 'hombro' && els.mouseCtrHombroValue) {
     els.mouseCtrHombroValue.textContent = uiValue;
+  } else if (servoKey === 'codo' && els.mouseCtrCodoValue) {
+    els.mouseCtrCodoValue.textContent = uiValue;
   }
 }
 

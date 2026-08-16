@@ -18,8 +18,10 @@ export class MouseControl {
   // Estado actual y objetivo
   #currentBaseAngle = 90;
   #currentHombroAngle = 140;
+  #currentCodoAngle = 90;
   #targetBaseAngle = 90;
   #targetHombroAngle = 140;
+  #targetCodoAngle = 90;
 
   // Configuración
   #approachStepDegrees = 2;
@@ -102,12 +104,16 @@ export class MouseControl {
     const codoConfig = this.#servos.codo;
     if (!codoConfig) return;
 
-    const step = e.deltaY > 0 ? -2 : 2; // scroll down = recoger (-), scroll up = extender (+)
-    let newAngle = this.#currentHombroAngle + step; // voy a usar hombro como placeholder para el codo también
+    // scroll down = recoger (menos grados), scroll up = extender (más grados)
+    const step = e.deltaY > 0 ? -3 : 3;
+    const newAngle = Math.max(codoConfig.min, Math.min(codoConfig.max, this.#currentHombroAngle + step));
     
-    // En realidad el codo está en S2, voy a controlarlo directamente
-    // Por ahora solo cambio el visual, el app.js habrá de mandarlo al firmware
-    this.#targetHombroAngle = Math.max(codoConfig.min, Math.min(codoConfig.max, newAngle));
+    this.#currentHombroAngle = newAngle;
+    
+    if (this.#onServoChange) {
+      this.#onServoChange('codo', Math.round(newAngle));
+    }
+    
     this.#draw();
   }
 

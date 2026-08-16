@@ -8,6 +8,10 @@
  */
 
 import { GruaBleClient, BluetoothNotSupportedError } from './ble.js';
+<<<<<<< HEAD
+=======
+import { GruaSerialClient, SerialNotSupportedError } from './serial.js';
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
 import {
   SERVOS,
   buildServoCommand,
@@ -29,8 +33,15 @@ const els = {
   welcomePanel: document.getElementById('welcomePanel'),
   controlPanel: document.getElementById('controlPanel'),
   connectButton: document.getElementById('connectButton'),
+<<<<<<< HEAD
   disconnectButton: document.getElementById('disconnectButton'),
   linkStatusDot: document.getElementById('linkStatusDot'),
+=======
+  connectUsbButton: document.getElementById('connectUsbButton'),
+  disconnectButton: document.getElementById('disconnectButton'),
+  linkStatusDot: document.getElementById('linkStatusDot'),
+  autoConnectionHint: document.getElementById('autoConnectionHint'),
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
   connectionLabel: document.getElementById('connectionLabel'),
   servoSliders: document.getElementById('servoSliders'),
   gripperOpenButton: document.getElementById('gripperOpenButton'),
@@ -76,15 +87,73 @@ function throttle(fn, waitMs) {
 // Estado de la aplicación
 // ----------------------------------------------------------------------------
 const ble = new GruaBleClient();
+<<<<<<< HEAD
+=======
+const serial = new GruaSerialClient();
+let activeConnection = null;
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
 let recSlotBits = [false, false, false, false, false, false];
 let activeRecordingSlot = null;
 let activePlayingSlot = null;
 let lastAnyMessageAt = 0;
 
+<<<<<<< HEAD
+=======
+const transport = {
+  get isConnected() {
+    return Boolean(activeConnection?.isConnected);
+  },
+  async send(command) {
+    if (!activeConnection) {
+      throw new Error('No hay ninguna conexión activa.');
+    }
+    return activeConnection.send(command);
+  },
+  async connect(kind = 'ble') {
+    const nextClient = kind === 'usb' ? serial : ble;
+    const otherClient = kind === 'usb' ? ble : serial;
+
+    if (otherClient?.isConnected) {
+      await otherClient.disconnect();
+    }
+
+    if (nextClient.isConnected) {
+      activeConnection = nextClient;
+      return;
+    }
+
+    activeConnection = nextClient;
+    return nextClient.connect();
+  },
+  async disconnect() {
+    if (!activeConnection) return;
+    await activeConnection.disconnect();
+    activeConnection = null;
+  },
+  addEventListener(eventName, handler) {
+    ble.addEventListener(eventName, handler);
+    serial.addEventListener(eventName, handler);
+  },
+  removeEventListener(eventName, handler) {
+    ble.removeEventListener(eventName, handler);
+    serial.removeEventListener(eventName, handler);
+  },
+};
+
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
 function log(message, kind = 'info') {
   appendLog(els.activityLog, message, kind);
 }
 
+<<<<<<< HEAD
+=======
+function setAutoConnectionHint(message) {
+  if (els.autoConnectionHint) {
+    els.autoConnectionHint.textContent = message;
+  }
+}
+
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
 function refreshSlotUi() {
   for (let slot = 1; slot <= 6; slot += 1) {
     let state = recSlotBits[slot - 1] ? 'saved' : 'empty';
@@ -106,7 +175,11 @@ function sendServoThrottled(servoKey, uiValue) {
     throttledServoSenders[servoKey] = throttle(async (value) => {
       try {
         const { command } = buildServoCommand(servoKey, value);
+<<<<<<< HEAD
         await ble.send(command);
+=======
+        await transport.send(command);
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
       } catch (error) {
         log(`Error enviando comando de servo: ${error.message}`, 'error');
       }
@@ -131,7 +204,11 @@ function updateServo(servoKey, rawValue) {
 }
 
 const servoControls = createServoSliders(els.servoSliders, (servoKey, uiValue) => {
+<<<<<<< HEAD
   if (!ble.isConnected) {
+=======
+  if (!transport.isConnected) {
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
     log('Conecta la grúa antes de mover los servos.', 'warning');
     return;
   }
@@ -141,7 +218,11 @@ const servoControls = createServoSliders(els.servoSliders, (servoKey, uiValue) =
 let gripperIsOpen = false; // el firmware arranca con la garra cerrada (145°, ver GRIPPER_CLOSED_ANGLE)
 
 async function setGripper(angle) {
+<<<<<<< HEAD
   if (!ble.isConnected) {
+=======
+  if (!transport.isConnected) {
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
     log('Conecta la grúa antes de mover la garra.', 'warning');
     return;
   }
@@ -218,7 +299,11 @@ function setDirectionHighlight(direction, isActive) {
 }
 
 function beginDirection(direction) {
+<<<<<<< HEAD
   if (!ble.isConnected) {
+=======
+  if (!transport.isConnected) {
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
     log('Conecta la grúa antes de moverla.', 'warning');
     return;
   }
@@ -301,12 +386,20 @@ window.addEventListener('keyup', (event) => {
 // Controles: grabaciones
 // ----------------------------------------------------------------------------
 async function sendRecCommand(command, description) {
+<<<<<<< HEAD
   if (!ble.isConnected) {
+=======
+  if (!transport.isConnected) {
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
     log('Conecta la grúa antes de usar las grabaciones.', 'warning');
     return;
   }
   try {
+<<<<<<< HEAD
     await ble.send(command);
+=======
+    await transport.send(command);
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
   } catch (error) {
     log(`Error en «${description}»: ${error.message}`, 'error');
   }
@@ -330,6 +423,7 @@ els.clearLogButton.addEventListener('click', () => clearLog(els.activityLog));
 // ----------------------------------------------------------------------------
 // Conexión / desconexión
 // ----------------------------------------------------------------------------
+<<<<<<< HEAD
 els.connectButton.addEventListener('click', async () => {
   setConnectionStatus(els.linkStatusDot, els.connectionLabel, 'connecting');
   els.connectButton.disabled = true;
@@ -348,6 +442,37 @@ els.connectButton.addEventListener('click', async () => {
 });
 
 els.disconnectButton.addEventListener('click', () => ble.disconnect());
+=======
+async function connectWithTransport(kind) {
+  setConnectionStatus(els.linkStatusDot, els.connectionLabel, 'connecting');
+  els.connectButton.disabled = true;
+  els.connectUsbButton.disabled = true;
+  try {
+    await transport.connect(kind);
+  } catch (error) {
+    els.connectButton.disabled = false;
+    els.connectUsbButton.disabled = false;
+    setConnectionStatus(els.linkStatusDot, els.connectionLabel, 'offline');
+    if (error?.name === 'NotFoundError' || error?.name === 'AbortError') {
+      log('Selección de dispositivo cancelada.', 'info');
+      return;
+    }
+    if (error?.name === 'SecurityError') {
+      log('La conexión USB requiere autorizar el puerto desde el navegador y abrir la página en localhost o HTTPS.', 'warning');
+      setAutoConnectionHint('USB bloqueado por el navegador: autoriza el puerto y vuelve a intentarlo.');
+      return;
+    }
+    log(`No se pudo conectar: ${error.message}`, 'error');
+  }
+}
+
+els.connectButton.addEventListener('click', () => connectWithTransport('ble'));
+els.connectUsbButton.addEventListener('click', () => connectWithTransport('usb'));
+
+els.disconnectButton.addEventListener('click', async () => {
+  await transport.disconnect();
+});
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
 
 /**
  * Mueve un servo gradualmente hasta un ángulo objetivo (en vez de saltar de
@@ -379,23 +504,39 @@ async function rampAllToDefaults() {
   gripperIsOpen = currentAngles.pinza === GRIPPER_OPEN_ANGLE;
 }
 
+<<<<<<< HEAD
 ble.addEventListener('connected', async ({ detail }) => {
   lastAnyMessageAt = Date.now();
   setConnectionStatus(els.linkStatusDot, els.connectionLabel, 'online');
   els.connectButton.hidden = true;
   els.connectButton.disabled = false;
+=======
+transport.addEventListener('connected', async ({ detail }) => {
+  lastAnyMessageAt = Date.now();
+  setConnectionStatus(els.linkStatusDot, els.connectionLabel, 'online');
+  els.connectButton.hidden = true;
+  els.connectUsbButton.hidden = true;
+  els.connectButton.disabled = false;
+  els.connectUsbButton.disabled = false;
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
   els.disconnectButton.hidden = false;
   els.welcomePanel.hidden = true;
   els.controlPanel.hidden = false;
   els.linkLostBanner.hidden = true;
   log(`Conectado a «${detail.deviceName ?? 'la grúa'}».`, 'success');
 
+<<<<<<< HEAD
   // El firmware manda un saludo (ID + READY + estado de slots) apenas se
   // conecta, pero lo volvemos a pedir explícitamente por si esa primera
   // ráfaga se perdiera o llegara antes de que termináramos de suscribirnos.
   try {
     await ble.send(buildIdentityCommand.id());
     await ble.send(buildRecordingCommand.requestSlots());
+=======
+  try {
+    await transport.send(buildIdentityCommand.id());
+    await transport.send(buildRecordingCommand.requestSlots());
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
   } catch (error) {
     log(`No se pudo pedir el estado inicial: ${error.message}`, 'warning');
   }
@@ -404,13 +545,24 @@ ble.addEventListener('connected', async ({ detail }) => {
   await rampAllToDefaults();
 });
 
+<<<<<<< HEAD
 ble.addEventListener('disconnected', () => {
   setConnectionStatus(els.linkStatusDot, els.connectionLabel, 'offline');
   els.connectButton.hidden = false;
+=======
+transport.addEventListener('disconnected', () => {
+  setConnectionStatus(els.linkStatusDot, els.connectionLabel, 'offline');
+  els.connectButton.hidden = false;
+  els.connectUsbButton.hidden = false;
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
   els.disconnectButton.hidden = true;
   els.controlPanel.hidden = true;
   els.welcomePanel.hidden = false;
   els.linkLostBanner.hidden = true;
+<<<<<<< HEAD
+=======
+  activeConnection = null;
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
   activeRecordingSlot = null;
   activePlayingSlot = null;
   endAllDirections();
@@ -418,7 +570,11 @@ ble.addEventListener('disconnected', () => {
   log('Desconectado.', 'warning');
 });
 
+<<<<<<< HEAD
 ble.addEventListener('line', ({ detail }) => {
+=======
+transport.addEventListener('line', ({ detail }) => {
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
   lastAnyMessageAt = Date.now();
   const event = parseIncomingLine(detail.line);
   if (!event) return;
@@ -503,9 +659,15 @@ ble.addEventListener('line', ({ detail }) => {
 // y avisa WARN:LINK:LOST si no recibe nada por 7s).
 // ----------------------------------------------------------------------------
 setInterval(() => {
+<<<<<<< HEAD
   if (ble.isConnected) {
     ble.send(buildIdentityCommand.ping()).catch(() => {
       /* si falla, el propio evento 'disconnected' de BLE ya se encarga de avisar */
+=======
+  if (transport.isConnected) {
+    transport.send(buildIdentityCommand.ping()).catch(() => {
+      /* si falla, el propio evento 'disconnected' de la conexión ya se encarga de avisar */
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
     });
   }
 }, 3000);
@@ -514,7 +676,11 @@ setInterval(() => {
 // dispositivo (más allá de lo que el propio firmware tarda en avisar),
 // lo reflejamos igual en el punto de estado como salvaguarda extra.
 setInterval(() => {
+<<<<<<< HEAD
   if (!ble.isConnected) return;
+=======
+  if (!transport.isConnected) return;
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
   const idleMs = Date.now() - lastAnyMessageAt;
   if (idleMs > 9000 && !els.linkStatusDot.classList.contains('status-dot--warning')) {
     setConnectionStatus(els.linkStatusDot, els.connectionLabel, 'warning', 'Sin datos recientes');
@@ -524,8 +690,54 @@ setInterval(() => {
 // ----------------------------------------------------------------------------
 // Arranque: valida soporte del navegador
 // ----------------------------------------------------------------------------
+<<<<<<< HEAD
 if (!GruaBleClient.isSupported()) {
   els.unsupportedBanner.hidden = false;
   els.connectButton.disabled = true;
   els.connectButton.title = new BluetoothNotSupportedError().message;
 }
+=======
+const supportsBle = GruaBleClient.isSupported();
+const supportsSerial = GruaSerialClient.isSupported();
+
+if (!supportsBle && !supportsSerial) {
+  els.unsupportedBanner.hidden = false;
+  els.connectButton.disabled = true;
+  els.connectUsbButton.disabled = true;
+  els.connectButton.title = new BluetoothNotSupportedError().message;
+  els.connectUsbButton.title = new SerialNotSupportedError().message;
+} else {
+  if (!supportsBle) {
+    els.connectButton.disabled = true;
+    els.connectButton.title = new BluetoothNotSupportedError().message;
+  }
+
+  if (!supportsSerial) {
+    els.connectUsbButton.disabled = true;
+    els.connectUsbButton.title = new SerialNotSupportedError().message;
+  }
+}
+async function autoDetectUsbConnection() {
+  if (!GruaSerialClient.isSupported()) {
+    setAutoConnectionHint('USB no disponible en este navegador.');
+    return;
+  }
+
+  try {
+    const ports = await navigator.serial.getPorts();
+    if (ports.length > 0) {
+      setAutoConnectionHint('Arduino detectado por USB. Conectando…');
+      await connectWithTransport('usb');
+      return;
+    }
+    setAutoConnectionHint('Arduino no detectado. Conecta el cable USB o usa Bluetooth.');
+  } catch (error) {
+    setAutoConnectionHint('No se pudo detectar el puerto USB.');
+    log(`Detección automática USB: ${error.message}`, 'warning');
+  }
+}
+
+if (supportsSerial) {
+  void autoDetectUsbConnection();
+}
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)

@@ -16,14 +16,37 @@
       <span class="app-header__logo" aria-hidden="true">🏗️</span>
       <div>
         <h1>Proyecto Grúa</h1>
+<<<<<<< HEAD
         <p class="app-header__subtitle">Control remoto por Bluetooth (BLE)</p>
+=======
+        <p class="app-header__subtitle">Control remoto por Bluetooth y USB</p>
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
       </div>
     </div>
 
     <div class="connection-widget">
+<<<<<<< HEAD
       <span id="linkStatusDot" class="status-dot status-dot--offline" aria-hidden="true"></span>
       <span id="connectionLabel" class="connection-widget__label">Desconectado</span>
       <button id="connectButton" class="btn btn--primary" type="button">Conectar por Bluetooth</button>
+=======
+      <div class="connection-status">
+        <span id="linkStatusDot" class="status-dot status-dot--offline" aria-hidden="true"></span>
+        <span id="connectionLabel" class="connection-widget__label">Desconectado</span>
+      </div>
+
+      <div class="connection-picker" aria-label="Selecciona el tipo de conexión">
+        <button id="connectButton" class="btn btn--primary" type="button">
+          <span class="btn__icon">📶</span>
+          <span>Bluetooth</span>
+        </button>
+        <button id="connectUsbButton" class="btn btn--secondary" type="button" title="Abre el selector del puerto USB y lo conecta con autorización del navegador">
+          <span class="btn__icon">🔌</span>
+          <span>USB</span>
+        </button>
+      </div>
+
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
       <button id="disconnectButton" class="btn btn--ghost" type="button" hidden>Desconectar</button>
     </div>
   </header>
@@ -41,10 +64,24 @@
     </section>
 
     <section id="welcomePanel" class="panel panel--welcome">
+<<<<<<< HEAD
       <h2>Antes de empezar</h2>
       <ol>
         <li>Enciende el ESP32 de la grúa (debe quedar visible como <code>Grua-ESP32</code>).</li>
         <li>Presiona <strong>«Conectar por Bluetooth»</strong> y elige el dispositivo en la lista.</li>
+=======
+      <div class="welcome-card">
+        <div>
+          <p class="eyebrow">Conexión automática</p>
+          <h2>Antes de empezar</h2>
+        </div>
+        <div id="autoConnectionHint" class="auto-detect">Comprobando conexión del Arduino…</div>
+      </div>
+
+      <ol>
+        <li>Si tienes el Arduino o ESP32 conectado por USB, la app lo detectará automáticamente.</li>
+        <li>Si usas Bluetooth, pulsa <strong>Bluetooth</strong> y elige el equipo en la lista.</li>
+>>>>>>> bfed039 (Initial commit: crane web app with USB and BLE support)
         <li>Cuando el punto de estado se ponga verde, ya puedes mover los servos.</li>
       </ol>
     </section>

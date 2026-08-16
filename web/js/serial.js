@@ -57,6 +57,12 @@ export class GruaSerialClient extends EventTarget {
       this.dispatchEvent(new CustomEvent('disconnected', { detail: {} }));
     });
 
+    // Al abrir el puerto, la señal DTR resetea el Arduino/ESP32, que tarda
+    // ~2s en arrancar. Se descarta lo que llegue durante ese arranque para
+    // no perder los primeros comandos ni interpretar el mensaje de boot
+    // como una línea de datos.
+    await this.#discardBootNoise(2000);
+
     void this.#readLoop();
     this.dispatchEvent(new CustomEvent('connected', { detail: { deviceName: this.deviceName } }));
   }
@@ -120,6 +126,22 @@ export class GruaSerialClient extends EventTarget {
     } finally {
       this.#cleanup();
     }
+  }
+
+  async #discardBootNoise(durationMs) {
+    const deadline = Date.now() + durationMs;
+    while (true) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) break;
+
+      const timeout = new Promise((resolve) => setTimeout(() => resolve('timeout'), remaining));
+      const result = await Promise.race([this.#reader.read(), timeout]);
+
+      if (result === 'timeout') break;
+      if (result.done) break;
+      // Se descarta result.value: es ruido del arranque del Arduino/ESP32.
+    }
+    this.#incomingBuffer = '';
   }
 
   #cleanup() {

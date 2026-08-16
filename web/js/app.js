@@ -497,13 +497,13 @@ transport.addEventListener('disconnected', () => {
   els.disconnectButton.hidden = true;
   els.controlPanel.hidden = true;
   els.welcomePanel.hidden = false;
-  
+
   // Limpiar control por mouse
   if (mouseControl) {
     mouseControl.destroy();
     mouseControl = null;
   }
-});
+
   els.linkLostBanner.hidden = true;
   activeConnection = null;
   activeRecordingSlot = null;
